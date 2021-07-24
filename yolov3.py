@@ -13,7 +13,7 @@ from tensorflow.keras.layers import BatchNormalization, Conv2D, Input, ZeroPaddi
 import numpy as np
 import cv2
 import streamlit as st
-import urllib.request
+# import urllib.request
 
 
 def parse_cfg(cfgfile):
