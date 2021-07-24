@@ -127,35 +127,7 @@ def YOLOv3Net(cfgfile, model_size, num_classes):
     model = Model(input_image, out_pred)
     return model
 
-def load_weights(model,cfgfile,weightfile):
-    fp = open(weightfile, "rb")
-    np.fromfile(fp, dtype=np.int32, count=5)
-    blocks = parse_cfg(cfgfile)
-    for i, block in enumerate(blocks[1:]):
-        if (block["type"] == "convolutional"):
-            conv_layer = model.get_layer('conv_' + str(i))
-            filters = conv_layer.filters
-            k_size = conv_layer.kernel_size[0]
-            in_dim = conv_layer.input_shape[-1] 
-            if "batch_normalize" in block:
-                norm_layer = model.get_layer('bnorm_' + str(i))
-                size = np.prod(norm_layer.get_weights()[0].shape)
-                bn_weights = np.fromfile(fp, dtype=np.float32, count=4 * filters)
-                bn_weights = bn_weights.reshape((4, filters))[[1, 0, 2, 3]]
-            else:
-                conv_bias = np.fromfile(fp, dtype=np.float32, count=filters)
-            conv_shape = (filters, in_dim, k_size, k_size)
-            conv_weights = np.fromfile(
-                fp, dtype=np.float32, count=np.product(conv_shape))
-            conv_weights = conv_weights.reshape(
-                conv_shape).transpose([2, 3, 1, 0])
-            if "batch_normalize" in block:
-                norm_layer.set_weights(bn_weights)
-                conv_layer.set_weights([conv_weights])
-            else:
-                conv_layer.set_weights([conv_weights, conv_bias])
-    assert len(fp.read()) == 0, 'failed to read all data'
-    fp.close()
+
 
 def non_max_suppression(inputs, model_size, max_output_size, 
                         max_output_size_per_class, iou_threshold, confidence_threshold):
@@ -239,22 +211,27 @@ image = None
 model = YOLOv3Net(cfgfile,model_size,num_classes)
 model.load_weights(weightfile)
 class_names = load_class_names(class_name)
-with urllib.request.urlopen("https://audimediacenter-a.akamaihd.net/system/production/media/77651/images/41fe36bf04e5b617668f4ae61de27157523547f7/A195566_blog.jpg?1582517310") as url:
-    image = np.asarray(bytearray(url.read()), dtype="uint8")
+uploaded_file = st.file_uploader("Choose a file")
+if uploaded_file is not None:
+    image = np.asarray(bytearray(uploaded_file.getvalue()), dtype="uint8")
     image = cv2.imdecode(image, cv2.IMREAD_ANYCOLOR)
     image = cv2.cvtColor(image , cv2.COLOR_BGR2RGB)
-image = np.array(image)
-image = tf.expand_dims(image, 0)
-resized_frame = resize_image(image, (model_size[0],model_size[1]))
-pred = model.predict(resized_frame)
-boxes, scores, classes, nums = output_boxes(
-    pred, model_size,
-    max_output_size=max_output_size,
-    max_output_size_per_class=max_output_size_per_class,
-    iou_threshold=iou_threshold,
-    confidence_threshold=confidence_threshold)
-image = np.squeeze(image)
-img = draw_outputs(image, boxes, scores, classes, nums, class_names)
-st.image(img, caption='Sunrise by the mountains')
+# with urllib.request.urlopen("https://audimediacenter-a.akamaihd.net/system/production/media/77651/images/41fe36bf04e5b617668f4ae61de27157523547f7/A195566_blog.jpg?1582517310") as url:
+#     image = np.asarray(bytearray(url.read()), dtype="uint8")
+#     image = cv2.imdecode(image, cv2.IMREAD_ANYCOLOR)
+#     image = cv2.cvtColor(image , cv2.COLOR_BGR2RGB)
+    image = np.array(image)
+    image = tf.expand_dims(image, 0)
+    resized_frame = resize_image(image, (model_size[0],model_size[1]))
+    pred = model.predict(resized_frame)
+    boxes, scores, classes, nums = output_boxes(
+        pred, model_size,
+        max_output_size=max_output_size,
+        max_output_size_per_class=max_output_size_per_class,
+        iou_threshold=iou_threshold,
+        confidence_threshold=confidence_threshold)
+    image = np.squeeze(image)
+    img = draw_outputs(image, boxes, scores, classes, nums, class_names)
+    st.image(img, caption='Sunrise by the mountains')
 
 
