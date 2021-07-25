@@ -127,7 +127,35 @@ def YOLOv3Net(cfgfile, model_size, num_classes):
     model = Model(input_image, out_pred)
     return model
 
-
+def load_weights(model,cfgfile,weightfile):
+    fp = open(weightfile, "rb")
+    np.fromfile(fp, dtype=np.int32, count=5)
+    blocks = parse_cfg(cfgfile)
+    for i, block in enumerate(blocks[1:]):
+        if (block["type"] == "convolutional"):
+            conv_layer = model.get_layer('conv_' + str(i))
+            filters = conv_layer.filters
+            k_size = conv_layer.kernel_size[0]
+            in_dim = conv_layer.input_shape[-1] 
+            if "batch_normalize" in block:
+                norm_layer = model.get_layer('bnorm_' + str(i))
+                size = np.prod(norm_layer.get_weights()[0].shape)
+                bn_weights = np.fromfile(fp, dtype=np.float32, count=4 * filters)
+                bn_weights = bn_weights.reshape((4, filters))[[1, 0, 2, 3]]
+            else:
+                conv_bias = np.fromfile(fp, dtype=np.float32, count=filters)
+            conv_shape = (filters, in_dim, k_size, k_size)
+            conv_weights = np.fromfile(
+                fp, dtype=np.float32, count=np.product(conv_shape))
+            conv_weights = conv_weights.reshape(
+                conv_shape).transpose([2, 3, 1, 0])
+            if "batch_normalize" in block:
+                norm_layer.set_weights(bn_weights)
+                conv_layer.set_weights([conv_weights])
+            else:
+                conv_layer.set_weights([conv_weights, conv_bias])
+    assert len(fp.read()) == 0, 'failed to read all data'
+    fp.close()
 
 def non_max_suppression(inputs, model_size, max_output_size, 
                         max_output_size_per_class, iou_threshold, confidence_threshold):
@@ -203,11 +231,13 @@ max_output_size_per_class= 20
 iou_threshold = 0.5
 confidence_threshold = 0.5
 cfgfile = 'yolov3.cfg'
-weightfile = 'weights/yolov3_weights'
+weight = "yolov3.weights"
+# weightfile = 'weights/yolov3_weights'
 image = None
 
 model = YOLOv3Net(cfgfile,model_size,num_classes)
-model.load_weights(weightfile)
+load_weights(model,cfgfile,weight)
+# model.load_weights(weightfile)
 class_names = load_class_names(class_name)
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
