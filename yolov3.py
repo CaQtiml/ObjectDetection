@@ -203,7 +203,7 @@ max_output_size_per_class= 20
 iou_threshold = 0.5
 confidence_threshold = 0.5
 cfgfile = 'yolov3.cfg'
-weightfile = 'yolov3_weights.tf'
+weightfile = 'weights/yolov3_weights'
 image = None
 
 model = YOLOv3Net(cfgfile,model_size,num_classes)
