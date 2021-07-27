@@ -244,10 +244,6 @@ if uploaded_file is not None:
     image = np.asarray(bytearray(uploaded_file.getvalue()), dtype="uint8")
     image = cv2.imdecode(image, cv2.IMREAD_ANYCOLOR)
     image = cv2.cvtColor(image , cv2.COLOR_BGR2RGB)
-# with urllib.request.urlopen("https://audimediacenter-a.akamaihd.net/system/production/media/77651/images/41fe36bf04e5b617668f4ae61de27157523547f7/A195566_blog.jpg?1582517310") as url:
-#     image = np.asarray(bytearray(url.read()), dtype="uint8")
-#     image = cv2.imdecode(image, cv2.IMREAD_ANYCOLOR)
-#     image = cv2.cvtColor(image , cv2.COLOR_BGR2RGB)
     image = np.array(image)
     image = tf.expand_dims(image, 0)
     resized_frame = resize_image(image, (model_size[0],model_size[1]))
