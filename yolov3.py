@@ -13,8 +13,6 @@ from tensorflow.keras.layers import BatchNormalization, Conv2D, Input, ZeroPaddi
 import numpy as np
 import cv2
 import streamlit as st
-# import urllib.request
-
 
 def parse_cfg(cfgfile):
     with open(cfgfile, 'r') as file:
@@ -232,12 +230,11 @@ iou_threshold = 0.5
 confidence_threshold = 0.5
 cfgfile = 'yolov3.cfg'
 weight = "yolov3.weights"
-# weightfile = 'weights/yolov3_weights'
 image = None
 
-model = YOLOv3Net(cfgfile,model_size,num_classes)
-load_weights(model,cfgfile,weight)
-# model.load_weights(weightfile)
+# model = YOLOv3Net(cfgfile,model_size,num_classes)
+# load_weights(model,cfgfile,weight)
+loaded_model = tf.keras.models.load_model("model_yolov3.h5")
 class_names = load_class_names(class_name)
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
@@ -247,7 +244,7 @@ if uploaded_file is not None:
     image = np.array(image)
     image = tf.expand_dims(image, 0)
     resized_frame = resize_image(image, (model_size[0],model_size[1]))
-    pred = model.predict(resized_frame)
+    pred = loaded_model.predict(resized_frame)
     boxes, scores, classes, nums = output_boxes(
         pred, model_size,
         max_output_size=max_output_size,
