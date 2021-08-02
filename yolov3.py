@@ -232,7 +232,7 @@ confidence_threshold = 0.5
 cfgfile = 'yolov3.cfg'
 weight = "yolov3.weights"
 image = None
-path = os.path.join("./app/","mpg_model.h5")
+path = os.path.join("./app/","model_yolov3.h5")
 
 # model = YOLOv3Net(cfgfile,model_size,num_classes)
 # load_weights(model,cfgfile,weight)
